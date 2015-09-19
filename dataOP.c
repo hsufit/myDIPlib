@@ -84,14 +84,143 @@ void Scailing(unsigned char *In, int IWidth, int IHeight, unsigned char *Out, in
 }
 
 
+void Sort_bubble(unsigned char *In, unsigned int ArraySize)
+{
+	int i,j;
+	unsigned char temp;
+
+	if(ArraySize<2)
+	{
+		printf("array size can't smaller then 2!");
+	}
+	else
+	{
+		for(i=0;i<ArraySize-1;i++)
+			for(j=0;j<ArraySize-1-i;j++)
+			{
+				if(In[j]<In[j+1])
+				{
+					temp=In[j];
+					In[j]=In[j+1];
+					In[j+1]=temp;
+				}
+			}
+	}
+}
+
+unsigned char FindNumber_medium(unsigned char *In, unsigned int ArraySize)
+{
+	int i;
+
+	unsigned char *temp;
+	int r;
+
+	if(ArraySize<2)
+	{
+		printf("array size can't smaller then 2!");
+		return 0;
+	}
+
+	temp=(unsigned char*)malloc(sizeof(unsigned char)*ArraySize);
+
+	for(i=0;i<ArraySize;i++)
+		temp[i]=In[i];
+
+	Sort_bubble(temp,ArraySize);
+
+	r=temp[ArraySize/2];
+	free(temp);
+
+	return r;
+}
+
+
+void Filter_median(unsigned char *In, int Width, int Height, unsigned char *Out, unsigned int Size)
+{
+	int i,j;
+
+	unsigned char *temp;
+	unsigned int N;
+
+	N=Size*2+1;
+	temp=(unsigned char*)malloc(sizeof(unsigned char)*N*N);
+
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+		{
+			BlockDraw_mirror(In,Width,Height,j-Size,i-Size,temp,N,N);
+			Out[i*Width+j]=FindNumber_medium(temp,N*N);
+		}
+	free(temp);
+}
+
+
+unsigned char FindNumber_avg(unsigned char *In, unsigned int ArraySize)
+{
+	int i;
+
+	double avg=0;
+
+	for(i=0;i<ArraySize;i++)
+		avg+=In[i];
+
+	avg/=ArraySize;
+
+	return (unsigned char)avg;
+}
 
 
 
+void Filter_avg(unsigned char *In, int Width, int Height, unsigned char *Out, unsigned int Size)
+{
+	int i,j;
+
+	unsigned char *temp;
+	unsigned int N;
+
+	N=Size*2+1;
+	temp=(unsigned char*)malloc(sizeof(unsigned char)*N*N);
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+		{
+			BlockDraw_mirror(In, Width, Height, j-Size, i-Size, temp, N, N);
+			Out[i*Width+j]=FindNumber_avg(temp,N*N);
+		}
+	free(temp);
+
+}
 
 
 
+double MSE(unsigned char *In1, unsigned char*In2, unsigned int ArraySize)
+{
+	int i;
+
+	double mse=0;
+	int sqrt;
+
+	for(i=0;i<ArraySize;i++)
+	{
+		sqrt=((int)In1[i]-In2[i])*((int)In1[i]-In2[i]);
+		mse+=sqrt;
+	}
+
+	mse/=ArraySize;
 
 
+	return mse;
+}
 
 
+double PSNR(unsigned char*In1, unsigned char*In2, unsigned int ArraySize)
+{
+	int i;
+	double mse, psnr;
+
+	mse=MSE(In1,In2,ArraySize);
+
+	psnr=10*log10(255*255/mse);
+
+	return psnr;
+}
 
