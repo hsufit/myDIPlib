@@ -6,6 +6,7 @@
 void Scailing_RGB(struct bmpD* Img, int OWidth, int OHeight)
 {
 	unsigned char *temp;
+
 	temp = (unsigned char*)malloc(sizeof(unsigned char)*OWidth*OHeight);
 	Scailing(Img->C.RY, Img->Width, Img->Height, temp, OWidth, OHeight);
 	free(Img->C.RY);
@@ -20,6 +21,14 @@ void Scailing_RGB(struct bmpD* Img, int OWidth, int OHeight)
 	Scailing(Img->C.BV, Img->Width, Img->Height, temp, OWidth, OHeight);
 	free(Img->C.BV);
 	Img->C.BV=temp;
+
+	if(Img->BPP==32)
+	{
+		temp = (unsigned char*)malloc(sizeof(unsigned char)*OWidth*OHeight);
+		Scailing(Img->Alpha, Img->Width, Img->Height, temp, OWidth, OHeight);
+		free(Img->Alpha);
+		Img->Alpha=temp;
+	}
 
 	Img->Width=OWidth;
 	Img->Height=OHeight;

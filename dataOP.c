@@ -78,6 +78,8 @@ void Scailing(unsigned char *In, int IWidth, int IHeight, unsigned char *Out, in
 
 			v=a*(x-X1)+b*(y-Y1)+c*(x-X1)*(y-Y1)+d;
 
+//printf("v(%d,%d) = %lf, %lf, %lf, %lf\nvalue = %lf\na=%lf, b=%lf, c=%lf, d=%lf\n",X1,Y1,p,q,r,s,v,a,b,c,d);
+
 			Out[i*OWidth+j]=v;
 
 		}

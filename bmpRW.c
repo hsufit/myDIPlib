@@ -42,6 +42,8 @@ void bmpRFunc(char *fileN,struct bmpD **pointer)
 		data->C.RY=malloc(sizeof(char)*data->Width*abs(data->Height));
 		data->C.GU=malloc(sizeof(char)*data->Width*abs(data->Height));
 		data->C.BV=malloc(sizeof(char)*data->Width*abs(data->Height));
+		if(data->BPP==32)//have alpha
+			data->Alpha=malloc(sizeof(char)*data->Width*abs(data->Height));
 		fseek(f, data->offsetRGB, SEEK_SET);
 		for(i=0;i<abs(data->Height);i++)
 		{
@@ -50,9 +52,15 @@ void bmpRFunc(char *fileN,struct bmpD **pointer)
 				fread(&(data->C.BV[i*data->Width+j]),1,1,f);
 				fread(&(data->C.GU[i*data->Width+j]),1,1,f);
 				fread(&(data->C.RY[i*data->Width+j]),1,1,f);
+				if(data->BPP==32)//have alpha
+					fread(&(data->Alpha[i*data->Width+j]),1,1,f);
+
 			}
 //skip zero padding
-		fseek(f, (4-data->Width*3%4)%4, SEEK_CUR);
+		if(data->BPP==32)
+			fseek(f, (4-data->Width*4%4)%4, SEEK_CUR);
+		else
+			fseek(f, (4-data->Width*3%4)%4, SEEK_CUR);
 		}
 	}
 
@@ -73,13 +81,13 @@ void bmpWFunc(char *fileN, struct bmpD* data, bool dir)
     f=fopen("Output.bmp","wb");
 
 	if(data->UsedColors==0)
-		data->sizeT = 54 + data->Width*abs(data->Height)*3;
+		data->sizeT = 54 + (data->Width+(4-data->Width%4)%4)*abs(data->Height)*data->BPP/8;
 	else
 		data->sizeT = 54 + data->UsedColors*4 + data->Width*abs(data->Height);
 
 	data->offsetRGB = 54 + data->UsedColors*4;
 
-	data->sizeD = data->Width*abs(data->Height)*3;
+	data->sizeD = (data->Width+(4-data->Width%4)%4)*abs(data->Height)*data->BPP/8;
 
 	if(dir==0)
 	    data->Height=abs(data->Height);
@@ -113,9 +121,15 @@ headerPrint(data);
 				fwrite(&(data->C.BV[i*data->Width+j]),1,1,f);
 				fwrite(&(data->C.GU[i*data->Width+j]),1,1,f);
 		 		fwrite(&(data->C.RY[i*data->Width+j]),1,1,f);
+				if(data->BPP==32)
+			 		fwrite(&(data->Alpha[i*data->Width+j]),1,1,f);
 			}
-			for(j=0;j<(4-data->Width*3%4)%4;j++)
-				fwrite(&tmp,1,1,f);
+			if(data->BPP==32)
+				for(j=0;j<(4-data->Width*4%4)%4;j++)
+					fwrite(&tmp,1,1,f);
+			else
+				for(j=0;j<(4-data->Width*3%4)%4;j++)
+					fwrite(&tmp,1,1,f);
 		}
 unsigned char k=0x8c;
 fwrite(&k,1,1,f);

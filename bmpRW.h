@@ -21,10 +21,10 @@ struct bmpD
     int UsedColors;
     int ImportColors;
 
-	unsigned char* Colors;
+	unsigned char *Colors;
 
 	struct charcontainer_3 C;
-
+	unsigned char *Alpha;
 };
 
 void bmpRFunc(char*,struct bmpD**);
