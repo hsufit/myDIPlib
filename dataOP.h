@@ -12,6 +12,14 @@ struct intcontainer_3
 	unsigned int *C;
 };
 
+struct doublecontainer_3
+{
+	double *A;
+	double *B;
+	double *C;
+};
+
+
 //********************************************
 //function name style : ManeTitle_type
 //********************************************
@@ -57,5 +65,14 @@ double MSE(unsigned char*, unsigned char*, unsigned int);
 double PSNR(unsigned char*, unsigned char*, unsigned int);
 
 
+
+//Transform using wavelet***************************************start
+void Transform_wavelet(unsigned char*, unsigned int, unsigned int, double*);
+//Transform using wavelet***************************************end
+
+//data type transform
+void TypeTrans_DtUC(double*, unsigned int, unsigned int, unsigned char*);
+
+void ColorTrans_RGBtY(struct charcontainer_3*, unsigned int, unsigned int, double*);
 
 

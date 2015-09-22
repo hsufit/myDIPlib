@@ -226,3 +226,94 @@ double PSNR(unsigned char*In1, unsigned char*In2, unsigned int ArraySize)
 	return psnr;
 }
 
+
+
+void Transform_wavelet(unsigned char *In, unsigned int Width, unsigned int Height, double *Out)
+{
+	int i,j;
+	double *tmp1, *tmp2;
+
+	if(Width%2 | Height%2)
+	{
+		printf("error size!\n");
+		return;
+	}
+
+	tmp1=malloc(sizeof(double)*Width*Height);
+	tmp2=malloc(sizeof(double)*Width*Height);
+
+//vertical
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width/2;j++)
+		{
+			tmp1[i*Width+j]=(double)In[i*Width+j*2]+In[i*Width+j*2+1];
+			tmp1[i*Width+j+Width/2]=(double)In[i*Width+j*2]-In[i*Width+j*2+1];
+		}
+
+//horizontal
+	for(i=0;i<Height/2;i++)
+		for(j=0;j<Width;j++)
+		{
+			tmp2[i*Width+j]=(double)tmp1[i*2*Width+j]+tmp1[(i*2+1)*Width+j];
+			tmp2[(i+Height/2)*Width+j]=(double)tmp1[i*2*Width+j]-tmp1[(i*2+1)*Width+j];
+		}
+	free(tmp1);
+	
+//testing data print for debug
+/*
+	for(i=0;i<Height/2;i++)
+		for(j=0;j<Width/2;j++)
+		{
+if(i<8 && (j<10))
+{
+			printf("(%3d, %3d)\n", j*2, i*2);
+			printf("v(x,y) = %3d, %3d, %3d, %3d\n",In[i*2*Width+j*2], In[i*2*Width+j*2+1], In[(i*2+1)*Width+j*2], In[(i*2+1)*Width+j*2+1]);
+			printf("w(x,y) = %5lf, %5lf, %5lf, %5lf\n",tmp2[i*Width+j], tmp2[i*Width+j+Width/2], tmp2[(i+Height/2)*Width+j], tmp2[(i+Height/2)*Width+j+Width/2]);
+}
+		}
+*/
+
+//normalize
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+			Out[i*Width+j] = tmp2[i*Width+j]/4;
+	free(tmp2);
+
+
+}
+
+void TypeTrans_DtUC(double *In, unsigned int Width, unsigned int Height, unsigned char *Out)
+{
+	int i,j;
+
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+		{
+			if(abs(In[i*Width+j])>255)
+				printf("Warning!! : biger then 255 (%3d,%3d) = %10lf\n", j, i, In[i*Width+j]);
+			Out[i*Width+j] = abs(In[i*Width+j]);
+		}
+
+}
+
+void ColorTrans_RGBtY(struct charcontainer_3 *RGB, unsigned int Width, unsigned int Height, double *Y)
+{
+
+	int i,j;
+	
+
+
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+		{
+			Y[i*Width+j]=(RGB->RY[i*Width+j]*299+RGB->GU[i*Width+j]*587+RGB->BV[i*Width+j]*114)/1000;
+//for debug
+/*if(i<5 && j<10)
+printf("(%3d, %3d) : %lf = %3d*299+%3d*587+%3d*114\n", j, i, Y[i*Width+j], RGB->RY[i*Width+j], RGB->GU[i*Width+j], RGB->BV[i*Width+j]);*/
+		}
+
+
+}
+
+
+
