@@ -28,6 +28,31 @@ void BlockDraw_mirror(unsigned char *In, int IWidth, int IHeight, int X, int Y, 
 }
 
 
+void BlockDraw_mirrorDouble(double *In, unsigned int IWidth, unsigned int IHeight, unsigned int X, unsigned int Y, double *Out, unsigned int OWidth, unsigned int OHeight)
+{
+int i,j,x,y;
+
+    for(i=0;i<OHeight;i++)
+        for(j=0;j<OWidth;j++)
+        {
+            y=Y+i;
+            x=X+j;
+
+            if(x<0)
+                x=abs(x)-1;
+            else if(x>IWidth-1)
+                    x=IWidth-abs(x-IWidth+1);
+
+            if(y<0)
+                y=abs(y)-1;
+            else if(y>IHeight-1)
+                    y=IHeight-abs(y-IHeight+1);
+
+            Out[i*OWidth+j]=In[y*IWidth+x];
+        }
+
+}
+
 
 void BlockInsert(unsigned char *In, int IWidth, int IHeight, int X, int Y, unsigned char *Out, int OWidth, int OHeight)
 {
@@ -85,6 +110,34 @@ void Scailing(unsigned char *In, int IWidth, int IHeight, unsigned char *Out, in
 		}
 }
 
+void Intensity_hisEQ(unsigned char *In, unsigned int Width, unsigned int Height)
+{
+	int i,j;
+	unsigned int his[256],mapping[256],counter=0;
+
+	Count_histogram( In, Width*Height, his);
+
+	//count his PDF into CDF
+	for(i=1;i<256;i++)
+		his[i]+=his[i-1];
+
+	//find mapptng
+	j=0;
+	for(i=0;i<256;i++)
+	{
+		while(his[i]>(j+1)*Width*Height/256 && j<256)
+			j++;
+
+		mapping[i]=j;
+//printf("i:%3d=%3d\n",i,mapping[i]);
+	}
+
+	//mapping
+	for(i=0;i<Width*Height;i++)
+	{
+		In[i]=mapping[In[i]];
+	}
+}
 
 void Sort_bubble(unsigned char *In, unsigned int ArraySize)
 {
@@ -157,7 +210,7 @@ void Filter_median(unsigned char *In, int Width, int Height, unsigned char *Out,
 }
 
 
-unsigned char FindNumber_avg(unsigned char *In, unsigned int ArraySize)
+double FindNumber_avg(unsigned char *In, unsigned int ArraySize)
 {
 	int i;
 
@@ -168,9 +221,22 @@ unsigned char FindNumber_avg(unsigned char *In, unsigned int ArraySize)
 
 	avg/=ArraySize;
 
-	return (unsigned char)avg;
+	return avg;
 }
 
+double FindNumber_avgDouble(double *In, unsigned int ArraySize)
+{
+	int i;
+
+	double avg=0;
+
+	for(i=0;i<ArraySize;i++)
+		avg+=In[i];
+
+	avg/=ArraySize;
+
+	return avg;
+}
 
 
 void Filter_avg(unsigned char *In, int Width, int Height, unsigned char *Out, unsigned int Size)
@@ -186,15 +252,144 @@ void Filter_avg(unsigned char *In, int Width, int Height, unsigned char *Out, un
 		for(j=0;j<Width;j++)
 		{
 			BlockDraw_mirror(In, Width, Height, j-Size, i-Size, temp, N, N);
-			Out[i*Width+j]=FindNumber_avg(temp,N*N);
+			Out[i*Width+j]=(unsigned char)FindNumber_avg(temp,N*N);
+		}
+	free(temp);
+
+}
+
+double Gaussian(unsigned char *In, int Width, int Height)
+{
+	int i,j, k, l, x, y;
+	double result=0, tGx=0, tGy=0, vx, vy, Gx, Gy;
+
+	x=Width/2;
+	y=Height/2;
+
+	vx=Width/3.;
+	vy=Height/3.;
+
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+		{
+
+		if(Width==1)
+			Gx=1;
+		else if(Width%2)
+			Gx=(1/(vx*sqrt(2*M_PI)))*exp(-1*pow((x-j),2)/(2*vx*vx));
+		else
+			Gx=(1/(vx*sqrt(2*M_PI)))*exp(-1*pow((x+0.5-j),2)/(2*vx*vx));
+
+		if(Height==1)
+			Gy=1;
+		else if(Height%2)
+			Gy=(1/(vy*sqrt(2*M_PI)))*exp(-1*pow((y-i),2)/(2*vy*vy));
+		else
+			Gy=(1/(vy*sqrt(2*M_PI)))*exp(-1*pow((y+0.5-i),2)/(2*vy*vy));
+
+			result+=In[i*Width+j]*Gx*Gy;
+/*
+if(i==0)
+	tGx+=Gx;
+if(j==0)
+	tGy+=Gy;
+printf("In(%3d, %3d) = %5d, Gx= %5lf, Gy= %5lf\n",j,i,In[i*Width+j],Gx,Gy);
+*/
+		}
+
+//printf("result = %5lf, tGx = %5lf, tGy = %5lf\n", result, tGx, tGy);
+
+	return result;
+
+}
+
+double GaussianDouble(double *In, int Width, int Height)
+{
+	int i,j, k, l, x, y;
+	double result=0, tGx=0, tGy=0, vx, vy, Gx, Gy;
+
+	x=Width/2;
+	y=Height/2;
+
+	vx=Width/3.;
+	vy=Height/3.;
+
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+		{
+
+		if(Width==1)
+			Gx=1;
+		else if(Width%2)
+			Gx=(1/(vx*sqrt(2*M_PI)))*exp(-1*pow((x-j),2)/(2*vx*vx));
+		else
+			Gx=(1/(vx*sqrt(2*M_PI)))*exp(-1*pow((x+0.5-j),2)/(2*vx*vx));
+
+		if(Height==1)
+			Gy=1;
+		else if(Height%2)
+			Gy=(1/(vy*sqrt(2*M_PI)))*exp(-1*pow((y-i),2)/(2*vy*vy));
+		else
+			Gy=(1/(vy*sqrt(2*M_PI)))*exp(-1*pow((y+0.5-i),2)/(2*vy*vy));
+
+			result+=In[i*Width+j]*Gx*Gy;
+/*
+if(i==0)
+	tGx+=Gx;
+if(j==0)
+	tGy+=Gy;
+printf("In(%3d, %3d) = %5d, Gx= %5lf, Gy= %5lf\n",j,i,In[i*Width+j],Gx,Gy);
+*/
+		}
+
+//printf("result = %5lf, tGx = %5lf, tGy = %5lf\n", result, tGx, tGy);
+
+	return result;
+
+}
+
+void Filter_gaussian(unsigned char *In, int Width, int Height, double *Out, int Size)
+{
+	int i,j;
+
+	unsigned char *temp;
+	unsigned int N;
+
+	N=Size*2+1;
+	temp=(unsigned char*)malloc(sizeof(unsigned char)*N*N);
+
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+		{
+			BlockDraw_mirror(In, Width, Height, j-Size, i-Size, temp, N, N);
+			Out[i*Width+j]=Gaussian(temp,N,N);
 		}
 	free(temp);
 
 }
 
 
+void Filter_gaussianDouble(double *In, int Width, int Height, double *Out, int Size)
+{
+	int i,j;
 
-double MSE(unsigned char *In1, unsigned char*In2, unsigned int ArraySize)
+	double *temp;
+	unsigned int N;
+
+	N=Size*2+1;
+	temp=(double*)malloc(sizeof(double)*N*N);
+
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+		{
+			BlockDraw_mirrorDouble(In, Width, Height, j-Size, i-Size, temp, N, N);
+			Out[i*Width+j]=GaussianDouble(temp,N,N);
+		}
+	free(temp);
+
+}
+
+double FindNumber_MSE(unsigned char *In1, unsigned char*In2, unsigned int ArraySize)
 {
 	int i;
 
@@ -214,19 +409,84 @@ double MSE(unsigned char *In1, unsigned char*In2, unsigned int ArraySize)
 }
 
 
-double PSNR(unsigned char*In1, unsigned char*In2, unsigned int ArraySize)
+double FindNumber_PSNR(unsigned char*In1, unsigned char*In2, unsigned int ArraySize)
 {
 	int i;
 	double mse, psnr;
 
-	mse=MSE(In1,In2,ArraySize);
+	mse=FindNumber_MSE(In1,In2,ArraySize);
 
 	psnr=10*log10(255*255/mse);
 
 	return psnr;
 }
 
+double FindNumber_VAR(unsigned char *In,unsigned int ArraySize)
+{
+	int i;
+	double *SqrDiff,var,avg;
 
+	avg=FindNumber_avg(In, ArraySize);
+
+	SqrDiff = malloc(sizeof(double)*ArraySize);
+	for(i=0;i<ArraySize;i++)
+		SqrDiff[i]=pow(In[i]-avg,2);
+
+	var=FindNumber_avgDouble(SqrDiff,ArraySize);
+
+	free(SqrDiff);
+
+	return var;
+}
+
+double FindNumber_CoVAR(unsigned char *In1, unsigned char *In2,unsigned int ArraySize)
+{
+	int i;
+	double *CoDiff, covar, avg1, avg2;
+
+	avg1=FindNumber_avg(In1, ArraySize);
+	avg2=FindNumber_avg(In2, ArraySize);
+
+	CoDiff = malloc(sizeof(double)*ArraySize);
+	for(i=0;i<ArraySize;i++)
+		CoDiff[i]=(In1[i]-avg1)*(In2[i]-avg2);
+
+	covar=FindNumber_avgDouble(CoDiff,ArraySize);
+
+	free(CoDiff);
+
+	return covar;
+}
+
+double FindNumber_SSIM(unsigned char *In1, unsigned char *In2, unsigned int ArraySize)
+{
+	double avg1, avg2, var1, var2, covar, SSIM;
+			//C1=(k1*L)^2  C2=(k2*L)^2 L=2^8-1 k1=0.01 k2=0.03
+	double C1=0.01*0.01*255*255, C2=0.03*0.03*255*255;
+	double Luminance,Contrast,Structure;
+
+	avg1=FindNumber_avg(In1,ArraySize);
+	avg2=FindNumber_avg(In2,ArraySize);
+//printf("avg = %5lf, %5lf\n",avg1,avg2);
+
+	var1=FindNumber_VAR(In1,ArraySize);
+	var2=FindNumber_VAR(In2,ArraySize);
+//printf("var = %5lf, %5lf\n",var1,var2);
+
+	covar=FindNumber_CoVAR(In1, In2, ArraySize);
+//printf("covar = %5lf\n",covar);
+
+	Luminance = (2*avg1*avg2+C1)/(avg1*avg1+avg2*avg2+C1);
+	Contrast = (2*sqrt(var1)*sqrt(var2)+C2)/(var1+var2+C2);
+	Structure = (2*covar+C2)/(2*sqrt(var1)*sqrt(var2)+C2);
+//printf("Luminance = %5lf\n",Luminance);
+//printf("Contrast = %5lf\n",Contrast);
+//printf("Structure = %5lf\n",Structure);
+
+	SSIM = Luminance*Contrast*Structure;
+
+	return SSIM;
+}
 
 void Transform_wavelet(unsigned char *In, unsigned int Width, unsigned int Height, double *Out)
 {
@@ -282,6 +542,68 @@ if(i<8 && (j<10))
 
 }
 
+
+
+
+void Transform_waveletDouble(double *In, unsigned int Width, unsigned int Height, double *Out)
+{
+	int i,j;
+	double *tmp1, *tmp2;
+
+	if(Width%2 | Height%2)
+	{
+		printf("error size!\n");
+		return;
+	}
+
+	tmp1=malloc(sizeof(double)*Width*Height);
+	tmp2=malloc(sizeof(double)*Width*Height);
+
+//vertical
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width/2;j++)
+		{
+			tmp1[i*Width+j]=In[i*Width+j*2]+In[i*Width+j*2+1];
+			tmp1[i*Width+j+Width/2]=In[i*Width+j*2]-In[i*Width+j*2+1];
+		}
+
+//horizontal
+	for(i=0;i<Height/2;i++)
+		for(j=0;j<Width;j++)
+		{
+			tmp2[i*Width+j]=tmp1[i*2*Width+j]+tmp1[(i*2+1)*Width+j];
+			tmp2[(i+Height/2)*Width+j]=tmp1[i*2*Width+j]-tmp1[(i*2+1)*Width+j];
+		}
+	free(tmp1);
+	
+//testing data print for debug
+/*
+	for(i=0;i<Height/2;i++)
+		for(j=0;j<Width/2;j++)
+		{
+if(i<8 && (j<10))
+{
+			printf("(%3d, %3d)\n", j*2, i*2);
+			printf("v(x,y) = %3d, %3d, %3d, %3d\n",In[i*2*Width+j*2], In[i*2*Width+j*2+1], In[(i*2+1)*Width+j*2], In[(i*2+1)*Width+j*2+1]);
+			printf("w(x,y) = %5lf, %5lf, %5lf, %5lf\n",tmp2[i*Width+j], tmp2[i*Width+j+Width/2], tmp2[(i+Height/2)*Width+j], tmp2[(i+Height/2)*Width+j+Width/2]);
+}
+		}
+*/
+
+//normalize
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+			Out[i*Width+j] = tmp2[i*Width+j]/4;
+	free(tmp2);
+
+
+}
+
+
+
+
+
+
 void TypeTrans_DtUC(double *In, unsigned int Width, unsigned int Height, unsigned char *Out)
 {
 	int i,j;
@@ -307,13 +629,40 @@ void ColorTrans_RGBtY(struct charcontainer_3 *RGB, unsigned int Width, unsigned 
 		for(j=0;j<Width;j++)
 		{
 			Y[i*Width+j]=(RGB->RY[i*Width+j]*299+RGB->GU[i*Width+j]*587+RGB->BV[i*Width+j]*114)/1000;
-//for debug
-/*if(i<5 && j<10)
-printf("(%3d, %3d) : %lf = %3d*299+%3d*587+%3d*114\n", j, i, Y[i*Width+j], RGB->RY[i*Width+j], RGB->GU[i*Width+j], RGB->BV[i*Width+j]);*/
-		}
 
+//for debug
+//if(i<3 && j<30)
+//printf("(%3d, %3d) : %lf = %3d*0.299+%3d*0.587+%3d*0.114\n", j, i, Y[i*Width+j], RGB->RY[i*Width+j], RGB->GU[i*Width+j], RGB->BV[i*Width+j]);
+
+		}
 
 }
 
+
+int Count_GL(double *In, unsigned int Width, unsigned int Height, double T)
+{
+	int i;
+	unsigned int count=0;
+
+	for(i=0;i<Width*Height;i++)
+		if(In[i]>T)
+			count++;
+
+	return count;
+}
+
+
+void Count_histogram(unsigned char *In, unsigned int Size, unsigned int *Out)
+{
+	int i,j;
+
+	//set to zero
+	for(i=0;i<256;i++)
+		Out[i]=0;
+
+	//count his
+	for(i=0;i<Size;i++)
+		Out[In[i]]++;
+}
 
 

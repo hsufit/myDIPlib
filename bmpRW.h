@@ -32,3 +32,9 @@ void bmpWFunc(char*,struct bmpD*, bool);
 
 void headerPrint(struct bmpD*);
 
+//container per frame, Width, Height, frame number
+void YUV420RFunc(char*, struct charcontainer_3*, unsigned int, unsigned int, unsigned int);
+
+
+
+

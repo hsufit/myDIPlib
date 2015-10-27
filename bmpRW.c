@@ -78,7 +78,11 @@ void bmpWFunc(char *fileN, struct bmpD* data, bool dir)
 
 	FILE *f;
 
-    f=fopen("Output.bmp","wb");
+    f=fopen(fileN,"wb");
+	if( f == NULL)
+		printf("can not open the file : \"%s\"\n",fileN);
+	else
+		printf("open the file : \"%s\" success!\n",fileN);
 
 	if(data->UsedColors==0)
 		data->sizeT = 54 + (data->Width+(4-data->Width%4)%4)*abs(data->Height)*data->BPP/8;
@@ -94,6 +98,7 @@ void bmpWFunc(char *fileN, struct bmpD* data, bool dir)
 	else
 	    data->Height=-abs(data->Height);
 
+printf("\noutput at : %s\n",fileN);
 headerPrint(data);
 
 
@@ -131,8 +136,8 @@ headerPrint(data);
 				for(j=0;j<(4-data->Width*3%4)%4;j++)
 					fwrite(&tmp,1,1,f);
 		}
-unsigned char k=0x8c;
-fwrite(&k,1,1,f);
+//unsigned char k=0x8c;
+//fwrite(&k,1,1,f);
 
 }
 
@@ -142,7 +147,7 @@ void headerPrint(struct bmpD* data)
 {
 	int i;
 
-	printf("\n\nImage info :\n");
+	printf("Image info :\n");
 	printf("%c%c\n",data->ID[0],data->ID[1]);
 	printf("File size : %d\n",data->sizeT);
 	printf("BMP data offset : %d\n",data->offsetRGB);
@@ -173,6 +178,43 @@ void headerPrint(struct bmpD* data)
 
 
 
+void YUV420RFunc(char *fileN, struct charcontainer_3 *data, unsigned int Width, unsigned int Height, unsigned int fn)
+{
+	int i,j;
+	char *U,*V;
+	FILE *f;
+
+	f=fopen(fileN,"rb");
+	if( f == NULL)
+		printf("can not open the file : \"%s\"\n",fileN);
+	else
+		printf("open the file : \"%s\" success!\n",fileN);
+
+//printf("%10ld\n",ftell(f));
+
+	fseek(f, fn*Width*Height*3/2, SEEK_SET);
+
+//printf("%10ld, seek : %d, %d\n",ftell(f), fn,Width*Height*3/2);
+
+	fread(data->RY,Width*Height,1,f);
+	U = malloc(sizeof(unsigned char)*Width*Height/4);
+	fread(U,Width*Height/4,1,f);
+	V = malloc(sizeof(unsigned char)*Width*Height/4);
+	fread(V,Width*Height/4,1,f);
+
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+		{
+//printf("start:(%3d,%3d)=(%3d,%3d)\n",j,i,j/2,i/2);
+			data->GU[i*Width+j] = U[i/2*(Width/2)+j/2];
+			data->BV[i*Width+j] = V[i/2*(Width/2)+j/2];
+//printf("end:(%3d,%3d)=(%3d,%3d)\n",j,i,j/2,i/2);
+		}
+
+	free(U);
+	free(V);
+	fclose(f);
+}
 
 
 
