@@ -1,0 +1,17 @@
+
+這個凾式庫專門針對影像處理領域
+
+主要有3個部分
+
+App：對整張圖片進行操作的凾式類型(ex: xxxxRGB)
+    App.h include bmpRW.h
+
+bmpRW：針對圖像的讀寫凾式，並定義bmp檔資料結構
+    bmpRW.h include dataOP.h
+
+dataOP：針對資料操作的凾式類型，並定義基礎資料結構
+
+
+
+凾式庫的結構是玩Qt時從一個開源軟體學來的，附上github：
+https://github.com/splintermind/Dwarf-Therapist.git
