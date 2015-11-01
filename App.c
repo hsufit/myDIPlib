@@ -270,7 +270,7 @@ void SSIM_block(unsigned char *In1, unsigned char *In2, unsigned int Width, unsi
 
 	for(i=0;i<Height/BlockSize;i++)
 	{
-		printf("line(%3d,%3d) = \n", j*BlockSize, i*BlockSize);
+		printf("\nline(%3d,%3d) = \n", j*BlockSize, i*BlockSize);
 		for(j=0;j<Width/BlockSize;j++)
 		{
 			BlockDraw_mirror(In1, Width, Height, j*BlockSize, i*BlockSize, tmp1, BlockSize, BlockSize);

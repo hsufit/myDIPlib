@@ -479,9 +479,9 @@ double FindNumber_SSIM(unsigned char *In1, unsigned char *In2, unsigned int Arra
 	Luminance = (2*avg1*avg2+C1)/(avg1*avg1+avg2*avg2+C1);
 	Contrast = (2*sqrt(var1)*sqrt(var2)+C2)/(var1+var2+C2);
 	Structure = (2*covar+C2)/(2*sqrt(var1)*sqrt(var2)+C2);
-//printf("Luminance = %5lf\n",Luminance);
-//printf("Contrast = %5lf\n",Contrast);
-//printf("Structure = %5lf\n",Structure);
+printf("Luminance = %10lf\n",Luminance);
+printf("Contrast = %10lf\n",Contrast);
+printf("Structure = %10lf\n",Structure);
 
 	SSIM = Luminance*Contrast*Structure;
 
