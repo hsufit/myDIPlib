@@ -488,6 +488,19 @@ printf("Structure = %10lf\n",Structure);
 	return SSIM;
 }
 
+void Transform_wavelet1D(unsigned char *In, unsigned int ArraySize, double *OutL, double *OutH)
+{
+	int i,j;
+
+	for(i=0;i<ArraySize;i++)
+	{
+		OutL[i]=
+		OutH[i]=
+	}
+
+	return;
+}
+
 void Transform_wavelet(unsigned char *In, unsigned int Width, unsigned int Height, double *Out)
 {
 	int i,j;

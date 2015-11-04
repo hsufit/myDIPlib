@@ -87,6 +87,10 @@ double FindNumber_SSIM(unsigned char*, unsigned char*, unsigned int);
 
 
 //Transform using wavelet***************************************start
+//original wavelet transform, will duplicate the data size and normalized by 2
+void Transform_wavelet1D(unsigned char*, unsigned int, double*, double*);
+void Transform_wavelet1D(double*, unsigned int, double*, double*);
+//fast wavelet transform
 void Transform_wavelet(unsigned char*, unsigned int, unsigned int, double*);
 void Transform_waveletDouble(double*, unsigned int, unsigned int, double*);
 //Transform using wavelet***************************************end
