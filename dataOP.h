@@ -30,7 +30,9 @@ void BlockDraw_mirror(unsigned char*, int, int, int, int, unsigned char*, int, i
 void BlockDraw_mirrorDouble(double*, unsigned int, unsigned int, unsigned int, unsigned int, double*, unsigned int, unsigned int);
 
 //put block on (X,Y) to (X+OWidth, Y+OHeight)
+//full block, sizeX, sizeY, posX, posY, insert block, sizeX, sizeY
 void BlockInsert(unsigned char*, int, int, int, int, unsigned char*, int, int);
+void BlockInsertDouble(double*, int, int, int, int, double*, int, int);
 
 //up scailing and down scailing
 //input, input width, input height, output, output width, output height
@@ -89,7 +91,7 @@ double FindNumber_SSIM(unsigned char*, unsigned char*, unsigned int);
 //Transform using wavelet***************************************start
 //original wavelet transform, will duplicate the data size and normalized by 2
 void Transform_wavelet1D(unsigned char*, unsigned int, double*, double*);
-void Transform_wavelet1D(double*, unsigned int, double*, double*);
+void Transform_wavelet1DDouble(double*, unsigned int, double*, double*);
 //fast wavelet transform
 void Transform_wavelet(unsigned char*, unsigned int, unsigned int, double*);
 void Transform_waveletDouble(double*, unsigned int, unsigned int, double*);

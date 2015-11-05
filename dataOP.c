@@ -66,6 +66,19 @@ void BlockInsert(unsigned char *In, int IWidth, int IHeight, int X, int Y, unsig
 		}
 }
 
+void BlockInsertDouble(double *In, int IWidth, int IHeight, int X, int Y, double *Out, int OWidth, int OHeight)
+{
+	int i,j;
+
+	for(i=0;i<OHeight;i++)
+		for(j=0;j<OWidth;j++)
+		{
+			if((X+j)<IWidth && (Y+i)<IHeight)
+			In[(Y+i)*IWidth+X+j]=Out[i*OWidth+j];
+		}
+}
+
+
 void Scailing(unsigned char *In, int IWidth, int IHeight, unsigned char *Out, int OWidth, int OHeight)
 {
 	int i, j, X1, Y1, X2, Y2;
@@ -492,11 +505,32 @@ void Transform_wavelet1D(unsigned char *In, unsigned int ArraySize, double *OutL
 {
 	int i,j;
 
-	for(i=0;i<ArraySize;i++)
+	//padding same value of the boundary for out of range, so ArraySize-1
+	for(i=0;i<ArraySize-1;i++)
 	{
-		OutL[i]=
-		OutH[i]=
+		OutL[i]=(In[i]+In[i+1])/2.;
+		OutH[i]=(In[i]-In[i+1])/2.;
 	}
+	//put the value into Out[ArraySize]
+	OutL[i]=In[i];
+	OutH[i]=0;
+
+	return;
+}
+
+void Transform_wavelet1DDouble(double *In, unsigned int ArraySize, double *OutL, double *OutH)
+{
+	int i,j;
+
+	//padding same value of the boundary for out of range, so ArraySize-1
+	for(i=0;i<ArraySize-1;i++)
+	{
+		OutL[i]=(In[i]+In[i+1])/2.;
+		OutH[i]=(In[i]-In[i+1])/2.;
+	}
+	//put the value into Out[ArraySize]
+	OutL[i]=In[i];
+	OutH[i]=0;
 
 	return;
 }
