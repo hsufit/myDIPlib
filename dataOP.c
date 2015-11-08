@@ -665,6 +665,37 @@ void TypeTrans_DtUC(double *In, unsigned int Width, unsigned int Height, unsigne
 
 }
 
+void Normalize_LinearMapping(double *In, unsigned int ArraySize, double *Out, double min, double max)
+{
+	int i;
+	double M=-50000, m=50000;
+
+	if(max<min)
+	{
+		printf("range error!! min>max\n");
+		return;
+	}
+
+	//find min max in In
+	for(i=0;i<ArraySize;i++)
+	{
+		if(In[i]>M)
+			M=In[i];
+		if(In[i]<m)
+			m=In[i];
+	}
+
+	//remapping
+	for(i=0;i<ArraySize;i++)
+	{
+		Out[i]=(max-min)*(In[i]-m)/(M-m) + min;
+if(Out[i]>50)
+	printf("(%4d) value = %5lf\n",i,Out[i]);
+	}
+
+	return;
+}
+
 void ColorTrans_RGBtY(struct charcontainer_3 *RGB, unsigned int Width, unsigned int Height, double *Y)
 {
 

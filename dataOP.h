@@ -100,6 +100,10 @@ void Transform_waveletDouble(double*, unsigned int, unsigned int, double*);
 //data type transform
 void TypeTrans_DtUC(double*, unsigned int, unsigned int, unsigned char*);
 
+//for input range in -50000 to 50000 mapping do a range
+//Input, ArraySize, Out, Range min, Range Max
+void Normalize_LinearMapping(double*, unsigned int, double*, double, double);
+
 void ColorTrans_RGBtY(struct charcontainer_3*, unsigned int, unsigned int, double*);
 
 //count grater then
