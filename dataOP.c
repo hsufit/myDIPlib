@@ -402,6 +402,41 @@ void Filter_gaussianDouble(double *In, int Width, int Height, double *Out, int S
 
 }
 
+void Filter_BoundaryGaussianDouble(double *In,unsigned int Width, unsigned int Height, double *Out, unsigned int reduceX, unsigned int reduceY)
+{
+	int i,j;
+	int x,y;
+	double Gx,Gy, vx=reduceX/3., vy=reduceY/3.;
+
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+		{
+			//choose smaller
+			x=abs(j)<abs(Width-j-1)? abs(j):abs(Width-j-1);
+			y=abs(i)<abs(Height-i-1)? abs(i):abs(Height-i-1);
+
+			if(x>=reduceX)
+				Gx=0;
+			else if(reduceX==1)
+				Gx=1;
+			else
+				//Gx=(1/(vx*sqrt(2*M_PI)))*exp(-1*pow((x),2)/(2*vx*vx));
+				Gx=exp(-1*pow((x),2)/(2*vx*vx));
+
+			if(y>=reduceY)
+				Gy=0;
+			else if(reduceY==1)
+				Gy=1;
+			else
+				//Gy=(1/(vy*sqrt(2*M_PI)))*exp(-1*pow((y),2)/(2*vy*vy));
+				Gy=exp(-1*pow((y),2)/(2*vy*vy));
+
+			Out[i*Width+j] = In[i*Width+j]*(1-Gx)*(1-Gy);
+		}
+
+return;
+}
+
 double FindNumber_MSE(unsigned char *In1, unsigned char*In2, unsigned int ArraySize)
 {
 	int i;
@@ -684,13 +719,14 @@ void Normalize_LinearMapping(double *In, unsigned int ArraySize, double *Out, do
 		if(In[i]<m)
 			m=In[i];
 	}
+printf("Max = %5lf, min = %5lf",M,m);
 
 	//remapping
 	for(i=0;i<ArraySize;i++)
 	{
 		Out[i]=(max-min)*(In[i]-m)/(M-m) + min;
-if(Out[i]>50)
-	printf("(%4d) value = %5lf\n",i,Out[i]);
+/*if(Out[i]>50)
+	printf("(%4d) value = %5lf\n",i,Out[i]);*/
 	}
 
 	return;

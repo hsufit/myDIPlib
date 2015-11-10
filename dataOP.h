@@ -74,6 +74,10 @@ void Filter_gaussian(unsigned char*, int, int, double*, int);
 void Filter_gaussianDouble(double*, int, int, double*, int);
 //Filter using gaussian****************************************end
 
+//Filter let edge be shooth for removing boundary ripple effect in IFFT
+//In, IWidth, IHeight, Out, x-edgeDistance, y-edgeDistance
+void Filter_BoundaryGaussianDouble(double*,unsigned int, unsigned int, double*, unsigned int, unsigned int);
+
 
 
 //compare two data to get MSE
