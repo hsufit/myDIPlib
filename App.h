@@ -18,6 +18,13 @@ void Denoising_gaussianfilter(struct bmpD*, unsigned int Area);
 void RemappingRGB(struct bmpD*);
 void RemappingY(struct bmpD*);
 
+//HW3
+
+
+
+
+
+
 //Others
 void YUV420VtRGBgray(char*, struct bmpD*, unsigned int);
 	//segment the image and count the SSIM using N*N block, not pix by pix
