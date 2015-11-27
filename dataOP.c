@@ -437,6 +437,31 @@ void Filter_BoundaryGaussianDouble(double *In,unsigned int Width, unsigned int H
 return;
 }
 
+void Filter_WienerInverseBoundaryGaussianDouble(double *In,unsigned int Width, unsigned int Height, double *Out, double vx, double vy, double WinerK)
+{
+	int i,j;
+
+	int x, y;
+	double Gx, Gy;
+
+	for(i=0;i<Height;i++)
+		for(j=0;j<Width;j++)
+		{
+			x=j<(Width-j-1)? j:(Width-j-1);
+			y=i<(Height-i-1)? i:(Height-i-1);
+
+				Gx=exp(-1*pow((x),2)/(2*vx*vx));
+				Gy=exp(-1*pow((y),2)/(2*vy*vy));
+
+			Out[i*Width+j] = In[i*Width+j]*(1/(Gx*Gy))*((Gx*Gx*Gy*Gy)/(Gx*Gx*Gy*Gy+WinerK));
+
+		}
+
+
+
+
+}
+
 double FindNumber_MSE(unsigned char *In1, unsigned char*In2, unsigned int ArraySize)
 {
 	int i;
@@ -752,6 +777,113 @@ void ColorTrans_RGBtY(struct charcontainer_3 *RGB, unsigned int Width, unsigned 
 
 }
 
+void ColorTrans_sRGBtXYZ(struct charcontainer_3 *In, unsigned int Width, unsigned int Height, struct doublecontainer_3 *Out)
+{
+	int i;
+	const double gamma=2.4;
+
+	struct doublecontainer_3 *T;
+
+	T = malloc(sizeof(struct doublecontainer_3));
+	T->A = malloc(sizeof(double)*Width*Height);
+	T->B = malloc(sizeof(double)*Width*Height);
+	T->C = malloc(sizeof(double)*Width*Height);
+	//gamma effect for sRGB to RGB
+	for(i=0;i<Width*Height;i++)
+	{
+
+		T->A[i]=(double)In->RY[i]/255;
+		T->B[i]=(double)In->GU[i]/255;
+		T->C[i]=(double)In->BV[i]/255;
+if(T->A[i]>1||T->B[i]>1||T->C[i]>1)
+printf("error!! : normalized sRGB(%3d,%3d) : %10lf, %10lf, %10lf\n", i%Width, i/Width, T->A[i], T->B[i], T->C[i]);
+
+		if(T->A[i]<0.04045)
+			T->A[i]=T->A[i]/12.92;
+		else
+			T->A[i]=pow((T->A[i]+0.055)/1.055,gamma);
+
+		if(T->B[i]<0.04045)
+			T->B[i]=T->B[i]/12.92;
+		else
+			T->B[i]=pow((T->B[i]+0.055)/1.055,gamma);
+
+		if(T->C[i]<0.04045)
+			T->C[i]=T->C[i]/12.92;
+		else
+			T->C[i]=pow((T->C[i]+0.055)/1.055,gamma);
+	}
+
+	//linear RGB to XYZ
+	for(i=0;i<Width*Height;i++)
+	{
+		Out->A[i]=(T->A[i]*4124+T->B[i]*3576+T->C[i]*1805)/10000;
+		Out->B[i]=(T->A[i]*2126+T->B[i]*7152+T->C[i]*722)/10000;
+		Out->C[i]=(T->A[i]*193+T->B[i]*1192+T->C[i]*9505)/10000;
+	}
+
+	free(T->A);
+	free(T->B);
+	free(T->C);
+	free(T);
+}
+
+void ColorTrans_XYZtsRGB(struct doublecontainer_3 *In, unsigned int Width, unsigned int Height, struct charcontainer_3 *Out)
+{
+	int i,j;
+	const double gamma=2.4;
+
+	struct doublecontainer_3 *T;
+
+	T = malloc(sizeof(struct doublecontainer_3));
+	T->A = malloc(sizeof(double)*Width*Height);
+	T->B = malloc(sizeof(double)*Width*Height);
+	T->C = malloc(sizeof(double)*Width*Height);
+
+	//XYZ to linear RGB
+	for(i=0;i<Width*Height;i++)
+	{
+		T->A[i]=(In->A[i]*32406  -In->B[i]*15372-In->C[i]*4986 )/10000;
+		T->B[i]=(In->A[i]*(-9689)+In->B[i]*18758+In->C[i]*415  )/10000;
+		T->C[i]=(In->A[i]*557    -In->B[i]*2040+In->C[i]*10570)/10000;
+	}
+
+	//gamma correction
+	for(i=0;i<Width*Height;i++)
+	{
+		if(T->A[i]<0.0031308)
+			T->A[i]=T->A[i]*12.92;
+		else
+			T->A[i]=1.055*pow(T->A[i],1/gamma)-0.055;
+
+		if(T->B[i]<0.0031308)
+			T->B[i]=T->B[i]*12.92;
+		else
+			T->B[i]=1.055*pow(T->B[i],1/gamma)-0.055;
+
+		if(T->C[i]<0.0031308)
+			T->C[i]=T->C[i]*12.92;
+		else
+			T->C[i]=1.055*pow(T->C[i],1/gamma)-0.055;
+
+		T->A[i]=T->A[i]*255;
+		T->B[i]=T->B[i]*255;
+		T->C[i]=T->C[i]*255;
+
+//if(T->A[i]>255||T->B[i]>255||T->C[i]>255)
+//printf("error!! : sRGB(%3d,%3d) : %10lf, %10lf, %10lf\n", i%Width, i/Width, T->A[i], T->B[i], T->C[i]);
+
+		Out->RY[i]=(unsigned char)T->A[i];
+		Out->GU[i]=(unsigned char)T->B[i];
+		Out->BV[i]=(unsigned char)T->C[i];
+	}
+
+
+	free(T->A);
+	free(T->B);
+	free(T->C);
+	free(T);
+}
 
 int Count_GL(double *In, unsigned int Width, unsigned int Height, double T)
 {

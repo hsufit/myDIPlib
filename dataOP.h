@@ -77,6 +77,8 @@ void Filter_gaussianDouble(double*, int, int, double*, int);
 //Filter let edge be shooth for removing boundary ripple effect in IFFT
 //In, IWidth, IHeight, Out, x-edgeDistance, y-edgeDistance
 void Filter_BoundaryGaussianDouble(double*,unsigned int, unsigned int, double*, unsigned int, unsigned int);
+//In, Width, Height, Out, vx, vy, WinerK
+void Filter_WienerInverseBoundaryGaussianDouble(double*,unsigned int, unsigned int, double*, double, double, double);
 
 
 
@@ -109,6 +111,11 @@ void TypeTrans_DtUC(double*, unsigned int, unsigned int, unsigned char*);
 void Normalize_LinearMapping(double*, unsigned int, double*, double, double);
 
 void ColorTrans_RGBtY(struct charcontainer_3*, unsigned int, unsigned int, double*);
+//RGB color space do gamma correction and transform to XYZ color space
+void ColorTrans_sRGBtXYZ(struct charcontainer_3*, unsigned int, unsigned int, struct doublecontainer_3*);
+//XYZ colorspace do gamma correction and transform to RGB color space
+void ColorTrans_XYZtsRGB(struct doublecontainer_3*, unsigned int, unsigned int, struct charcontainer_3*);
+
 
 //count grater then
 int Count_GL(double *, unsigned int, unsigned int, double);
