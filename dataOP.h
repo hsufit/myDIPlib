@@ -115,7 +115,10 @@ void ColorTrans_RGBtY(struct charcontainer_3*, unsigned int, unsigned int, doubl
 void ColorTrans_sRGBtXYZ(struct charcontainer_3*, unsigned int, unsigned int, struct doublecontainer_3*);
 //XYZ colorspace do gamma correction and transform to RGB color space
 void ColorTrans_XYZtsRGB(struct doublecontainer_3*, unsigned int, unsigned int, struct charcontainer_3*);
-
+//XYZ colorspace transform to LAB color space
+void ColorTrans_XYZtLAB(struct doublecontainer_3*, unsigned int, unsigned int, struct doublecontainer_3*);
+//LAB colorspace transform to XYZ color space
+void ColorTrans_LABtXYZ(struct doublecontainer_3*, unsigned int, unsigned int, struct doublecontainer_3*);
 
 //count grater then
 int Count_GL(double *, unsigned int, unsigned int, double);

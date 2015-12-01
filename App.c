@@ -173,7 +173,7 @@ printf("mapping[%3d] = %3d\n",i,mapping[i]);
 
 void RemappingRGB(struct bmpD *Img)
 {
-	int i,j;
+	int i;
 	unsigned int mapping[256];
 	double Scale, smooth=1;
 
@@ -201,7 +201,7 @@ void RemappingRGB(struct bmpD *Img)
 
 void RemappingY(struct bmpD *Img)
 {
-	int i,j;
+	int i;
 	double mapping[256], *Y, *ratio;
 	double Scale, smooth=1;
 

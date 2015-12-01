@@ -126,7 +126,7 @@ void Scailing(unsigned char *In, int IWidth, int IHeight, unsigned char *Out, in
 void Intensity_hisEQ(unsigned char *In, unsigned int Width, unsigned int Height)
 {
 	int i,j;
-	unsigned int his[256],mapping[256],counter=0;
+	unsigned int his[256],mapping[256];
 
 	Count_histogram( In, Width*Height, his);
 
@@ -273,8 +273,8 @@ void Filter_avg(unsigned char *In, int Width, int Height, unsigned char *Out, un
 
 double Gaussian(unsigned char *In, int Width, int Height)
 {
-	int i,j, k, l, x, y;
-	double result=0, tGx=0, tGy=0, vx, vy, Gx, Gy;
+	int i,j, x, y;
+	double result=0, vx, vy, Gx, Gy;
 
 	x=Width/2;
 	y=Height/2;
@@ -318,8 +318,8 @@ printf("In(%3d, %3d) = %5d, Gx= %5lf, Gy= %5lf\n",j,i,In[i*Width+j],Gx,Gy);
 
 double GaussianDouble(double *In, int Width, int Height)
 {
-	int i,j, k, l, x, y;
-	double result=0, tGx=0, tGy=0, vx, vy, Gx, Gy;
+	int i,j, x, y;
+	double result=0, vx, vy, Gx, Gy;
 
 	x=Width/2;
 	y=Height/2;
@@ -484,7 +484,6 @@ double FindNumber_MSE(unsigned char *In1, unsigned char*In2, unsigned int ArrayS
 
 double FindNumber_PSNR(unsigned char*In1, unsigned char*In2, unsigned int ArraySize)
 {
-	int i;
 	double mse, psnr;
 
 	mse=FindNumber_MSE(In1,In2,ArraySize);
@@ -563,7 +562,7 @@ printf("Structure = %10lf\n",Structure);
 
 void Transform_wavelet1D(unsigned char *In, unsigned int ArraySize, double *OutL, double *OutH)
 {
-	int i,j;
+	int i;
 
 	//padding same value of the boundary for out of range, so ArraySize-1
 	for(i=0;i<ArraySize-1;i++)
@@ -580,7 +579,7 @@ void Transform_wavelet1D(unsigned char *In, unsigned int ArraySize, double *OutL
 
 void Transform_wavelet1DDouble(double *In, unsigned int ArraySize, double *OutL, double *OutH)
 {
-	int i,j;
+	int i;
 
 	//padding same value of the boundary for out of range, so ArraySize-1
 	for(i=0;i<ArraySize-1;i++)
@@ -817,9 +816,9 @@ printf("error!! : normalized sRGB(%3d,%3d) : %10lf, %10lf, %10lf\n", i%Width, i/
 	//linear RGB to XYZ
 	for(i=0;i<Width*Height;i++)
 	{
-		Out->A[i]=(T->A[i]*4124+T->B[i]*3576+T->C[i]*1805)/10000;
-		Out->B[i]=(T->A[i]*2126+T->B[i]*7152+T->C[i]*722)/10000;
-		Out->C[i]=(T->A[i]*193+T->B[i]*1192+T->C[i]*9505)/10000;
+		Out->A[i] = (T->A[i]*4124+T->B[i]*3576+T->C[i]*1805)/10000;
+		Out->B[i] = (T->A[i]*2126+T->B[i]*7152+T->C[i]*722)/10000;
+		Out->C[i] = (T->A[i]*193+T->B[i]*1192+T->C[i]*9505)/10000;
 	}
 
 	free(T->A);
@@ -830,7 +829,7 @@ printf("error!! : normalized sRGB(%3d,%3d) : %10lf, %10lf, %10lf\n", i%Width, i/
 
 void ColorTrans_XYZtsRGB(struct doublecontainer_3 *In, unsigned int Width, unsigned int Height, struct charcontainer_3 *Out)
 {
-	int i,j;
+	int i;
 	const double gamma=2.4;
 
 	struct doublecontainer_3 *T;
@@ -870,8 +869,8 @@ void ColorTrans_XYZtsRGB(struct doublecontainer_3 *In, unsigned int Width, unsig
 		T->B[i]=T->B[i]*255;
 		T->C[i]=T->C[i]*255;
 
-//if(T->A[i]>255||T->B[i]>255||T->C[i]>255)
-//printf("error!! : sRGB(%3d,%3d) : %10lf, %10lf, %10lf\n", i%Width, i/Width, T->A[i], T->B[i], T->C[i]);
+if(T->A[i]>256||T->B[i]>256||T->C[i]>256||T->A[i]<0||T->B[i]<0||T->C[i]<0)
+printf("error!! : sRGB(%3d,%3d) : %10lf, %10lf, %10lf\n", i%Width, i/Width, T->A[i], T->B[i], T->C[i]);
 
 		Out->RY[i]=(unsigned char)T->A[i];
 		Out->GU[i]=(unsigned char)T->B[i];
@@ -883,6 +882,51 @@ void ColorTrans_XYZtsRGB(struct doublecontainer_3 *In, unsigned int Width, unsig
 	free(T->B);
 	free(T->C);
 	free(T);
+}
+
+void ColorTrans_XYZtLAB(struct doublecontainer_3 *In, unsigned int Width, unsigned int Height, struct doublecontainer_3 *Out)
+{
+	int i;
+
+	double x, y, z, xd65, yd65, zd65;
+
+	for(i=0;i<Width*Height;i++)
+	{
+		xd65 = In->A[i]/0.95047;
+		yd65 = In->B[i]/1.;
+		zd65 = In->C[i]/1.08883;
+
+		x = xd65>pow((6./29),3)? pow(xd65,1./3):xd65*pow(29./6,2.)/3.+4./29;
+		y = yd65>pow((6./29),3)? pow(yd65,1./3):yd65*pow(29./6,2.)/3.+4./29;
+		z = zd65>pow((6./29),3)? pow(zd65,1./3):zd65*pow(29./6,2.)/3.+4./29;
+
+		Out->A[i] = 116*y-16;
+		Out->B[i] = 500*(x-y);
+		Out->C[i] = 200*(y-z);
+	}
+
+}
+
+void ColorTrans_LABtXYZ(struct doublecontainer_3 *In, unsigned int Width, unsigned int Height, struct doublecontainer_3 *Out)
+{
+	int i;
+
+	double x,y,z;
+
+	for(i=0;i<Width*Height;i++)
+	{
+		x = (In->A[i]+16)/116.+In->B[i]/500.;
+		y = (In->A[i]+16)/116.;
+		z = (In->A[i]+16)/116.-In->C[i]/200.;
+
+		Out->A[i] = 0.95047 * (x>(6./29)? pow(x,3):3*pow(6./29,2)*(x-4./29));
+		Out->B[i] = y>(6./29)? pow(y,3):3*pow(6./29,2)*(y-4./29);
+		Out->C[i] = 1.08883 * (z>(6./29)? pow(z,3):3*pow(6./29,2)*(z-4./29));
+
+	}
+
+
+
 }
 
 int Count_GL(double *In, unsigned int Width, unsigned int Height, double T)
@@ -900,7 +944,7 @@ int Count_GL(double *In, unsigned int Width, unsigned int Height, double T)
 
 void Count_histogram(unsigned char *In, unsigned int Size, unsigned int *Out)
 {
-	int i,j;
+	int i;
 
 	//set to zero
 	for(i=0;i<256;i++)
