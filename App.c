@@ -246,6 +246,161 @@ void RemappingY(struct bmpD *Img)
 
 }
 
+
+void LAB_ABrotate(struct doublecontainer_3 *In, unsigned int Width, unsigned int Height, double arc, struct doublecontainer_3 *Out)
+{
+	int i;
+
+	for(i=0;i<Width*Height;i++)
+	{
+		Out->A[i] = In->A[i];
+		Out->B[i] = In->B[i]*cos(arc)+In->C[i]*sin(arc);
+		Out->C[i] = In->C[i]*cos(arc)-In->B[i]*sin(arc);
+	}
+
+}
+
+void LAB_ABShift(struct doublecontainer_3 *In, unsigned int Width, unsigned int Height, double SA, double SB, struct doublecontainer_3 *Out)
+{
+	int i;
+
+	for(i=0;i<Width*Height;i++)
+	{
+		Out->A[i] = In->A[i];
+Out->B[i] = In->B[i];
+Out->C[i] = 15;//In->C[i]*0.2;
+/*		if(abs(In->B[i]+SA)<500)
+			Out->B[i] = In->B[i]+SA;
+		else
+			Out->B[i] = In->B[i]+SA>0? 500:-500;
+		if(abs(In->C[i]+SB)<200)
+			Out->C[i] = In->C[i]+SB;
+		else
+			Out->C[i] = In->C[i]+SB>0? 200:-200;
+*/		
+	}
+
+}
+
+void LeastSquare_RSRatLAB(struct doublecontainer_3 *In, unsigned int Width, unsigned int Height, struct doublecontainer_3 *Out)
+{
+	int i,j,k,l,m;
+
+	unsigned int position[48];
+
+	struct doublecontainer_3 *RefxyY, *RefXYZ, *RefLAB, *ImgLAB, *testLAB;
+	double DiffWX, DiffWY, minMSE=5000000, MSE;
+	int R1, SX, SY, R2;
+
+	FILE *fp;
+
+	fp = fopen("./image1_board.txt","r");
+	for(i=0;i<24;i++)
+	{
+		fscanf(fp,"%d,%d",&(position[i*2]),&(position[i*2+1]));
+		printf("color point%2d = (%3d,%3d)\n",i,position[i*2],position[i*2+1]);
+	}
+	fclose(fp);
+	fp = NULL;
+
+	RefxyY = malloc(sizeof(struct doublecontainer_3));
+	RefxyY->A = malloc(sizeof(double)*24);
+	RefxyY->B = malloc(sizeof(double)*24);
+	RefxyY->C = malloc(sizeof(double)*24);
+	//read the 24 reference point of xyY
+	fp = fopen("./goldenxyY","r");
+	for(i=0;i<24;i++)
+	{
+		fscanf(fp,"%lf %lf %lf",&(RefxyY->A[i]),&(RefxyY->B[i]),&(RefxyY->C[i]));
+		//print the referenced color
+		printf("color[%2d] : %lf, %lf, %lf\n", i,(RefxyY->A[i]),(RefxyY->B[i]),(RefxyY->C[i]));
+	}
+	fclose(fp);
+
+	RefXYZ = malloc(sizeof(struct doublecontainer_3));
+	RefXYZ->A = malloc(sizeof(double)*24);
+	RefXYZ->B = malloc(sizeof(double)*24);
+	RefXYZ->C = malloc(sizeof(double)*24);
+	//transform xyY to XYZ
+	for(i=0;i<24;i++)
+	{
+		RefXYZ->A[i] = RefxyY->C[i]*RefxyY->A[i]/RefxyY->B[i];
+		RefXYZ->B[i] = RefxyY->C[i];
+		RefXYZ->C[i] = RefxyY->C[i]*(1-RefxyY->A[i]-RefxyY->B[i])/RefxyY->B[i];
+	}
+
+	RefLAB = malloc(sizeof(struct doublecontainer_3));
+	RefLAB->A = malloc(sizeof(double)*24);
+	RefLAB->B = malloc(sizeof(double)*24);
+	RefLAB->C = malloc(sizeof(double)*24);
+	//transform XYZ to LAB
+	ColorTrans_XYZtLAB(RefXYZ, 24, 1, RefLAB);
+
+	ImgLAB = malloc(sizeof(struct doublecontainer_3));
+	ImgLAB->A = malloc(sizeof(double)*24);
+	ImgLAB->B = malloc(sizeof(double)*24);
+	ImgLAB->C = malloc(sizeof(double)*24);
+	//draw colors on the board
+	for(i=0;i<24;i++)
+	{
+		ImgLAB->A[i] = In->A[(Height-position[i*2+1]-1)*Width+position[i*2]];
+		ImgLAB->B[i] = In->B[(Height-position[i*2+1]-1)*Width+position[i*2]];
+		ImgLAB->C[i] = In->C[(Height-position[i*2+1]-1)*Width+position[i*2]];
+		printf("point%3d = LAB(%lf,%lf,%lf) from (%3d,%3d)\n",i ,ImgLAB->A[i], ImgLAB->B[i], ImgLAB->C[i],position[i*2],Height-position[i*2+1]-1);
+	}
+
+	DiffWX = sqrt(pow(ImgLAB->B[19]-RefLAB->B[19],2)+pow(ImgLAB->C[19]-RefLAB->C[19],2));
+	DiffWY = DiffWX;
+
+	testLAB = malloc(sizeof(struct doublecontainer_3));
+	testLAB->A = malloc(sizeof(double)*24);
+	testLAB->B = malloc(sizeof(double)*24);
+	testLAB->C = malloc(sizeof(double)*24);
+	for(i=0;i<1/*360*/;i++)
+	{
+	//printf("testing R1 = %3d, SX = %3d, SY = %3d, R2 = %3d\n minMSE = %lf\n", i, j, k, l,minMSE);
+		for(j=0;j<61;j++)
+		{
+			for(k=0;k<61;k++)
+			{
+				for(l=0;l<1/*360*/;l++)
+				{
+	printf("Ref LAB = (%10lf,%10lf,%10lf)\n", RefLAB->A[18], RefLAB->B[18], RefLAB->C[18]);
+					LAB_ABrotate(RefLAB, 24, 1, i*M_PI/180, testLAB);
+	printf("testing R1 LAB = (%10lf,%10lf,%10lf)\n", testLAB->A[18], testLAB->B[18], testLAB->C[18]);
+					LAB_ABShift(testLAB, 24, 1, -DiffWX+j*DiffWX/30, -DiffWY+k*DiffWY/30, testLAB);
+	printf("testing S LAB = (%10lf,%10lf,%10lf)\n", testLAB->A[18], testLAB->B[18], testLAB->C[18]);
+					LAB_ABrotate(testLAB, 24, 1, l*M_PI/180, testLAB);
+	printf("testing R2 LAB = (%10lf,%10lf,%10lf)\n", testLAB->A[18], testLAB->B[18], testLAB->C[18]);
+					MSE=0;
+					for(m=0;m<24;m++)
+					{
+						MSE+=pow(testLAB->B[m]-ImgLAB->B[m],2)+pow(testLAB->C[m]-ImgLAB->C[m],2);
+					}
+	printf("testing MSE = %lf, SX = %3d, SY = %3d, R2 = %3d\n", MSE, j, k, l);
+	
+					if(MSE<minMSE)
+					{
+						minMSE=MSE;
+						R1=i;
+						SX=j;
+						SY=k;
+						R2=l;
+					}
+				}
+			}
+		}
+	}
+
+	printf("\nminMSE = %lf\nRotate arg 1 = %d\nshift = (%3d,%3d)\nRotate arg 2 = %d\n",minMSE, R1,SX,SY,R2);
+
+	//LAB_ABrotate(In, Width, Height, -R2*M_PI/180, Out);
+	//LAB_ABShift(In, Width, Height, DiffWX-SX*DiffWX/30, DiffWY-SY*DiffWY/30, Out);
+	LAB_ABShift(In, Width, Height, 0, 0, Out);
+	//LAB_ABrotate(Out, Width, Height, -R1*M_PI/180, Out);
+
+}
+
 void YUV420VtRGBgray(char *fileN, struct bmpD *Img, unsigned int fn)
 {
 	int i;

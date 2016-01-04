@@ -20,9 +20,14 @@ void RemappingY(struct bmpD*);
 
 //HW3
 
-
-
-
+//HW4
+//-->main idea is using Rotata, Shift, and Rotate to find the least square solution
+//LAB In data, Width, Height, Rotate at orig point coefficient,LAB Out data
+void LAB_ABrotate(struct doublecontainer_3*, unsigned int, unsigned int, double, struct doublecontainer_3*);
+//LAB In data, Width, Height, shift X, shift Y,LAB Out data
+void LAB_ABShift(struct doublecontainer_3*, unsigned int, unsigned int, double, double, struct doublecontainer_3*);
+//use least square error method to determine inverse coefficient and refine the image
+void LeastSquare_RSRatLAB(struct doublecontainer_3*, unsigned int, unsigned int, struct doublecontainer_3*);
 
 
 //Others

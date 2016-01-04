@@ -202,6 +202,25 @@ unsigned char FindNumber_medium(unsigned char *In, unsigned int ArraySize)
 	return r;
 }
 
+double FindNumber_maxDouble(double *In, unsigned int ArraySize)
+{
+	int i;
+	double tmp=-5000;
+
+	for(i=0;i<ArraySize;i++)
+		tmp = In[i]>tmp? In[i]:tmp;
+	return tmp;
+}
+
+double FindNumber_minDouble(double *In, unsigned int ArraySize)
+{
+	int i;
+	double tmp=5000;
+
+	for(i=0;i<ArraySize;i++)
+		tmp = In[i]<tmp? In[i]:tmp;
+	return tmp;
+}
 
 void Filter_median(unsigned char *In, int Width, int Height, unsigned char *Out, unsigned int Size)
 {
@@ -787,7 +806,6 @@ void ColorTrans_sRGBtXYZ(struct charcontainer_3 *In, unsigned int Width, unsigne
 	T->A = malloc(sizeof(double)*Width*Height);
 	T->B = malloc(sizeof(double)*Width*Height);
 	T->C = malloc(sizeof(double)*Width*Height);
-	//gamma effect for sRGB to RGB
 	for(i=0;i<Width*Height;i++)
 	{
 
@@ -797,17 +815,18 @@ void ColorTrans_sRGBtXYZ(struct charcontainer_3 *In, unsigned int Width, unsigne
 if(T->A[i]>1||T->B[i]>1||T->C[i]>1)
 printf("error!! : normalized sRGB(%3d,%3d) : %10lf, %10lf, %10lf\n", i%Width, i/Width, T->A[i], T->B[i], T->C[i]);
 
-		if(T->A[i]<0.04045)
+	//gamma effect for sRGB to RGB
+		if(T->A[i]<=0.04045)
 			T->A[i]=T->A[i]/12.92;
 		else
 			T->A[i]=pow((T->A[i]+0.055)/1.055,gamma);
 
-		if(T->B[i]<0.04045)
+		if(T->B[i]<=0.04045)
 			T->B[i]=T->B[i]/12.92;
 		else
 			T->B[i]=pow((T->B[i]+0.055)/1.055,gamma);
 
-		if(T->C[i]<0.04045)
+		if(T->C[i]<=0.04045)
 			T->C[i]=T->C[i]/12.92;
 		else
 			T->C[i]=pow((T->C[i]+0.055)/1.055,gamma);
@@ -850,17 +869,17 @@ void ColorTrans_XYZtsRGB(struct doublecontainer_3 *In, unsigned int Width, unsig
 	//gamma correction
 	for(i=0;i<Width*Height;i++)
 	{
-		if(T->A[i]<0.0031308)
+		if(T->A[i]<=0.0031308)
 			T->A[i]=T->A[i]*12.92;
 		else
 			T->A[i]=1.055*pow(T->A[i],1/gamma)-0.055;
 
-		if(T->B[i]<0.0031308)
+		if(T->B[i]<=0.0031308)
 			T->B[i]=T->B[i]*12.92;
 		else
 			T->B[i]=1.055*pow(T->B[i],1/gamma)-0.055;
 
-		if(T->C[i]<0.0031308)
+		if(T->C[i]<=0.0031308)
 			T->C[i]=T->C[i]*12.92;
 		else
 			T->C[i]=1.055*pow(T->C[i],1/gamma)-0.055;
@@ -869,9 +888,13 @@ void ColorTrans_XYZtsRGB(struct doublecontainer_3 *In, unsigned int Width, unsig
 		T->B[i]=T->B[i]*255;
 		T->C[i]=T->C[i]*255;
 
-if(T->A[i]>256||T->B[i]>256||T->C[i]>256||T->A[i]<0||T->B[i]<0||T->C[i]<0)
+if(T->A[i]>256||T->B[i]>256||T->C[i]>256||T->A[i]<-1||T->B[i]<-1||T->C[i]<-1)
+{
 printf("error!! : sRGB(%3d,%3d) : %10lf, %10lf, %10lf\n", i%Width, i/Width, T->A[i], T->B[i], T->C[i]);
-
+T->A[i]=0;
+T->B[i]=0;
+T->C[i]=0;
+}
 		Out->RY[i]=(unsigned char)T->A[i];
 		Out->GU[i]=(unsigned char)T->B[i];
 		Out->BV[i]=(unsigned char)T->C[i];

@@ -47,6 +47,8 @@ void Sort_bubble(unsigned char*, unsigned int);
 
 	//input, array size
 unsigned char FindNumber_medium(unsigned char*, unsigned int);
+double FindNumber_maxDouble(double*, unsigned int);
+double FindNumber_minDouble(double*, unsigned int);
 
 	//find the median number near every point
 	//input, input width, input height, output, area size(1+2*n for each edge)
